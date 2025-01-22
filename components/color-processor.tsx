@@ -64,7 +64,6 @@ function calculateRelativeChroma(l: number, c: number, h: number): number {
  * 根据色相值调整相对色度
  * - 对于灰度色（无彩色），保持零色度
  * - h在(30, 210)时，最小值不小于0.8
- * - h在[0, 30]或[270, 360]时，最大值不超过0.9
  *
  * @param relativeChroma - 原始相对色度值
  * @param h - 色相值 (0-360)
@@ -130,11 +129,13 @@ function processColor(
     // 计算调整后的亮度
     l = Math.min(2 * l - 1.3, 0.5);
 
-    // 如果是灰度色，保持零色度；否则按原逻辑处理
+    // 如果是灰度色，保持零色度
+    // 如果使用相对色度，则按相对色度计算色度
+    // 否则不做调整
     if (isGrayscale) {
       c = 0;
     } else if (useRelativeChroma) {
-      c = findMaxChroma(l, h) * relativeChroma;
+      c = Math.max(findMaxChroma(l, h) * relativeChroma, c);
     } else {
       c = Math.min(c, findMaxChroma(l, h));
     }
@@ -150,7 +151,7 @@ function processColor(
         return `rgb(${adjustedColor.rgb().join(", ")})`;
       case "oklch":
         const [l, c, h] = adjustedColor.oklch();
-        return `oklch(${l.toFixed(2)}, ${c.toFixed(3)}, ${h.toFixed(2)})`;
+        return `oklch(${l.toFixed(2)} ${c.toFixed(3)} ${h.toFixed(2)})`;
       default:
         throw new Error("Invalid output format");
     }
@@ -176,6 +177,7 @@ export default function ColorProcessor() {
 
   useEffect(() => {
     const result = processColor(inputColor, outputFormat, useRelativeChroma);
+    console.log(result);
     setProcessedColor(result);
   }, [inputColor, outputFormat, useRelativeChroma]);
 
