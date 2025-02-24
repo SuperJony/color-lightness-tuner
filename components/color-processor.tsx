@@ -113,7 +113,7 @@ function processColor(
     let [l, c, h] = color;
 
     // 判断是否为灰度色（色度接近于0）
-    const isGrayscale = c < 0.001;
+    const isGrayscale = c < 0.009;
 
     // 计算并调整相对色度
     const baseRelativeChroma = calculateRelativeChroma(l, c, h);
@@ -132,12 +132,10 @@ function processColor(
     // 如果是灰度色，保持零色度
     // 如果使用相对色度，则按相对色度计算色度
     // 否则不做调整
-    if (isGrayscale) {
-      c = 0;
-    } else if (useRelativeChroma) {
-      c = Math.max(findMaxChroma(l, h) * relativeChroma, c);
-    } else {
-      c = Math.min(c, findMaxChroma(l, h));
+    if (!isGrayscale) {
+      c = useRelativeChroma
+        ? Math.max(findMaxChroma(l, h) * relativeChroma, c)
+        : Math.min(c, findMaxChroma(l, h));
     }
 
     // 调整后的颜色, 控制 c 的值最大为 0.2
